@@ -7,11 +7,11 @@ import (
 )
 
 func main() {
-	c := boring("boring!") // 関数がチャンネルを返すようにする
-	for i := 0; i < 5; i++ {
-		fmt.Printf("You say: %q\n", <-c)
+	c := fanIn(boring("Joe"), boring("Ann"))
+	for i := 0; i < 10; i++ {
+		fmt.Println(<-c)
 	}
-	fmt.Println("You're boring; I'm leaving")
+	fmt.Println("You've both boring; i'm leaving")
 }
 
 // goroutineを内部で動かす(受信専用チャンネルとして定義)
@@ -26,4 +26,19 @@ func boring(msg string) <-chan string {
 	}()
 
 	return c // 受信チャンネルを返す
+}
+
+func fanIn(input1, input2 <-chan string) <-chan string {
+	c := make(chan string)
+	go func() {
+		for {
+			c <- <-input1
+		}
+	}()
+	go func() {
+		for {
+			c <- <-input2
+		}
+	}()
+	return c
 }

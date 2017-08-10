@@ -7,11 +7,13 @@ import (
 )
 
 func main() {
-	c := boring("boring!") // 関数がチャンネルを返すようにする
+	joe := boring("Joe")
+	ann := boring("Ann")
 	for i := 0; i < 5; i++ {
-		fmt.Printf("You say: %q\n", <-c)
+		fmt.Println(<-joe)
+		fmt.Println(<-ann)
 	}
-	fmt.Println("You're boring; I'm leaving")
+	fmt.Println("You've both boring; i'm leaving")
 }
 
 // goroutineを内部で動かす(受信専用チャンネルとして定義)

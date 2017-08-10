@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 )
 
@@ -15,9 +14,10 @@ func main() {
 	fmt.Println("You've boring; I'm leaving.")
 }
 
+// 都度メッセージを送信する
 func boring(msg string, c chan string) {
 	for i := 0; ; i++ {
+		time.Sleep(1000 * time.Millisecond)
 		c <- fmt.Sprintf("%s %d", msg, i)
-		time.Sleep(time.Duration(rand.Intn(1e3)))
 	}
 }
