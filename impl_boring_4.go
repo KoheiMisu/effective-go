@@ -37,7 +37,7 @@ func fanIn(input ...<-chan string) <-chan string {
 	for _, i := range input {
 		go func() {
 			for {
-				c <- <-i
+				c <- <-i //ここの受信でブロックしてるのが悪そう
 			}
 		}()
 	}
