@@ -29,6 +29,8 @@ func fakeSearch(kind string) Search {
 }
 
 //　処理の重さを考慮して80ms以下は処理を中断させる
+// for-selectパターン
+// メインのgoroutineはselectで結果を受信
 func Google(query string) (results []Result) {
 	c := make(chan Result)
 	// 処理を行うサーバーを増やしている
@@ -55,6 +57,7 @@ func Google(query string) (results []Result) {
 }
 
 // 低速サーバ上で破棄されないように処理の受け口を複製する
+// タスクの種類によってgoroutineを作る
 func First(query string, replicas ...Search) Result {
 	c := make(chan Result)
 	searchReplica := func(i int) {
