@@ -17,6 +17,8 @@ func main()  {
 	table <- new(Ball)
 	time.Sleep(1 * time.Second)
 	<- table
+
+	//panic("show me the stacks")
 }
 
 func player(name string, table chan *Ball) {
