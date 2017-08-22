@@ -5,23 +5,17 @@ import (
 	"fmt"
 )
 
-type Fetcher interface {
-	Fetch() (items []Item, next time.Time, err error)
-}
-
-type Subscription interface {
-	Updates() <-chan Item // stream of Items
-	Close() error // shuts down the screen
-}
-
-type Item struct {
-	Title, Channel, GUID string
-}
-
 // sub implements the Subscription interface
 type sub struct {
+	naiveSub
+
 	fetcher Fetcher
 	updates chan Item
+}
+
+type naiveSub struct {
+	closed bool
+	err error
 }
 
 // loop fetches items using s.fetcher and sends them on s.updates
@@ -36,6 +30,8 @@ type sub struct {
 // fetchできるようになったとき
 // s.updatesにitemを送る
 func (s *sub) loop() {
+
+
 	for {
 		if s.closed {
 			close(s.updates)
@@ -64,6 +60,11 @@ func (s *sub) Close() error {
 	// Todo: make loop exit
 	// Todo: find out about any error
 	return err
+}
+
+func (s *naiveSub) Close() error {
+	s.closed = true
+	return s.err
 }
 
 
