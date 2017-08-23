@@ -31,23 +31,18 @@ type naiveSub struct {
 // s.updatesにitemを送る
 func (s *sub) loop() {
 
-
+	var pending []Item // appended by fetch; consumed by send
 	for {
-		if s.closed {
-			close(s.updates)
-			return
+		var first Item
+		var updates chan Item
+		if len(pending) > 0 {
+			first = pending[0]
+			updates = s.updates // enable send case
 		}
-		items, next, err := s.fetcher.Fetch()
-		if err != nil {
-			s.err = err
-			time.Sleep(10 * time.Second)
-			continue
-		}
-		for _, item := range items {
-			s.updates <- item
-		}
-		if now := time.Now(); next.After(now) {
-			time.Sleep(next.Sub(now))
+
+		select {
+		case updates <- first:
+			pending = pending[1:]
 		}
 	}
 }
