@@ -4,6 +4,8 @@ import (
 	"time"
 	"net/http"
 	"fmt"
+	"context"
+	"log"
 )
 
 
@@ -15,27 +17,42 @@ import (
 // できること
 // goroutineやAPI教会をまたいだ処理のキャンセル要求と値の受け渡しが簡単に
 func main() {
-	w := http
-	handle()
+	req, _ := http.NewRequest("GET", "/health-check", nil)
+	handle(req)
 }
 
-func slowProcess() error {
+func slowProcess(ctx context.Context) error {
 	for i := 0; i < 10; i++ {
-		fmt.Println("doing something ...")
-		time.Sleep(time.Duration(1 * time.Second))
+		log.Println("doing something...", i)
+		select {
+		case <-time.After(1*time.Second):
+		case <-ctx.Done():
+			log.Println("Slow process done", i)
+			return ctx.Err()
+		}
 	}
-	fmt.Println("something is done")
+	log.Println("Something is done")
 	return nil
 }
 
-func handle(w http.ResponseWriter, r *http.Request)  {
-	resultCh := make(chan error, 1)
+func handle(r *http.Request)  {
+	// cancelを呼ぶとctxのDoneに送信が行われる
+
+	//ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	//defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		resultCh <- slowProcess()
+		<-time.After(7 * time.Second)
+		cancel()
 	}()
 
-	select {
-	case err := <-resultCh:
-		fmt.Fprintln(w, "Result", err)
-	}
+
+	resultCh := make(chan error, 1)
+	go func() {
+		resultCh <- slowProcess(ctx)
+	}()
+
+	err := <-resultCh
+	fmt.Println("Result", err)
+	//fmt.Fprintln(w, "Result", err)
 }
